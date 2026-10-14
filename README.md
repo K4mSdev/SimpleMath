@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SimpleMath 📐
 
-## Getting Started
+Kalkulator matematyczny i naukowy stworzony z myślą o uczniach szkół podstawowych i ponadpodstawowych (przygotowany pod polski program nauczania i egzaminy CKE).
 
-First, run the development server:
+Repozytorium GitHub: [https://github.com/K4mSdev/SimpleMath](https://github.com/K4mSdev/SimpleMath)
+
+---
+
+## ✨ Funkcjonalności
+
+- **Polska notacja szkolna:**
+  - Przecinek dziesiętny (`2,5` lub `2.5`).
+  - Dzielenie dwukropkiem lub ukośnikiem (`8:2` lub `8/2`).
+  - Mnożenie kropką lub gwiazdką (`2·3` lub `2*3`).
+  - Polskie nazwy funkcji trygonometrycznych: `tg`, `ctg` (oraz `sin`, `cos`).
+- **Dokładne ułamki i rozwinięcia okresowe:**
+  - Ułamki zwykłe i nieskracalne: `1/2 + 1/3 = 5/6`.
+  - Liczby mieszane: `7/3 = 2 1/3`.
+  - Dokładne rozwinięcia dziesiętne z okresem w nawiasie: `1/3 = 0,(3)`, `1/6 = 0,1(6)`.
+- **Zaawansowane działania:**
+  - Potęgowanie (`2^10`, `x²`) i pierwiastkowanie (`√16`).
+  - Logarytmy dziesiętne (`log(100) = 2`) i o dowolnej podstawie (`log(8; 2) = 3`).
+  - Logarytm naturalny (`ln(e) = 1`).
+  - Trygonometria w stopniach (`DEG`) i radianach (`RAD`), z wymuszeniem stopni (`sin(30°)`).
+- **Wygoda i produktywność:**
+  - Podgląd wzoru na żywo w $\LaTeX$ (KaTeX).
+  - Szybkie kopiowanie wyniku jako czysty tekst lub kod $\LaTeX$.
+  - Historia obliczeń zapisywana lokalnie w pamięci przeglądarki (`localStorage`).
+  - Możliwość ponownego wstawienia lub usunięcia dowolnego wpisu z historii.
+  - Skróty klawiaturowe: `Enter` = oblicz, `Esc` = wyczyść, `Backspace` = inteligentne usuwanie funkcji.
+
+---
+
+## 🚀 Uruchomienie lokalne
 
 ```bash
+# Instalacja zależności
+npm install
+
+# Uruchomienie serwera deweloperskiego
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Aplikacja będzie dostępna pod adresem: [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧪 Testy
 
-## Learn More
+Projekt posiada zestaw testów jednostkowych weryfikujących poprawność matematyczną, zaokrąglenia, trygonometrię i polskie komunikaty błędów:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm test
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 💻 Praca na Windowsie i MacBooku
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Na Windowsie:** Zapisujesz zmiany, robisz commit i wysyłasz do GitHuba (`git push`).
+2. **Na MacBooku:**
+   ```bash
+   git pull
+   npm install
+   npm run dev
+   ```
+3. Materiały dodatkowe (arkusze CKE w PDF, notatki, grafiki) znajdują się w folderze **Google Drive**: `Mój dysk/MathPulse-materialy`.
