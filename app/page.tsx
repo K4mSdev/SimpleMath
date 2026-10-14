@@ -1,17 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calculator } from "@/components/calculator/Calculator";
 import { EquationSolver } from "@/components/calculator/EquationSolver";
 import { GeometryCalculator } from "@/components/calculator/GeometryCalculator";
+import { PrimarySchoolCalculator } from "@/components/calculator/PrimarySchoolCalculator";
 import { DocsModal } from "@/components/docs/DocsModal";
-import { BookOpen, Calculator as CalcIcon, Compass, GraduationCap, Variable } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Calculator as CalcIcon,
+  Compass,
+  GraduationCap,
+  Sparkles,
+  Variable,
+} from "lucide-react";
 
-type ActiveModule = "general" | "equations" | "geometry";
+type SchoolLevel = "primary" | "secondary" | null;
+type SecondaryModule = "general" | "equations" | "geometry";
 
 export default function Home() {
-  const [activeModule, setActiveModule] = useState<ActiveModule>("general");
+  const [level, setLevel] = useState<SchoolLevel>(null);
+  const [secondaryModule, setSecondaryModule] = useState<SecondaryModule>("general");
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+
+  // Odczyt z pamięci podręcznej (jeśli uczeń już wcześniej wybrał szkołę)
+  useEffect(() => {
+    const saved = localStorage.getItem("simplemath:school_level");
+    if (saved === "primary" || saved === "secondary") {
+      setLevel(saved);
+    }
+  }, []);
+
+  const selectLevel = (newLevel: SchoolLevel) => {
+    setLevel(newLevel);
+    if (newLevel) {
+      localStorage.setItem("simplemath:school_level", newLevel);
+    } else {
+      localStorage.removeItem("simplemath:school_level");
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-100/70 dark:bg-zinc-950">
@@ -19,27 +48,52 @@ export default function Home() {
       <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/80">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-500/30">
-              <GraduationCap className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-                Simple<span className="text-indigo-600 dark:text-indigo-400">Math</span>
-              </span>
-              <span className="ml-2 hidden rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700 sm:inline-block dark:bg-indigo-950/60 dark:text-indigo-300">
-                Podstawa CKE
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => selectLevel(null)}
+              title="Wróć do menu wyboru szkoły"
+              className="flex items-center gap-2 text-left"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm shadow-indigo-500/30">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
+                  Simple<span className="text-indigo-600 dark:text-indigo-400">Math</span>
+                </span>
+                {level === "primary" && (
+                  <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                    Klasy 4–8 SP
+                  </span>
+                )}
+                {level === "secondary" && (
+                  <span className="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                    Ponadpodstawowa (LO/Technikum)
+                  </span>
+                )}
+              </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
+            {level !== null && (
+              <button
+                type="button"
+                onClick={() => selectLevel(null)}
+                className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Zmień poziom</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsDocsOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
             >
               <BookOpen className="h-4 w-4" />
-              <span>Ściąga & Dokumentacja</span>
+              <span>Ściąga CKE</span>
             </button>
 
             <a
@@ -57,56 +111,194 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Zakładki kategorii kalkulatora */}
-        <div className="border-t border-zinc-100 dark:border-zinc-800">
-          <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-1.5 sm:px-6">
-            <button
-              type="button"
-              onClick={() => setActiveModule("general")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                activeModule === "general"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <CalcIcon className="h-3.5 w-3.5" />
-              <span>Kalkulator Ogólny</span>
-            </button>
+        {/* Zakładki dla szkoły ponadpodstawowej */}
+        {level === "secondary" && (
+          <div className="border-t border-zinc-100 dark:border-zinc-800">
+            <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-1.5 sm:px-6">
+              <button
+                type="button"
+                onClick={() => setSecondaryModule("general")}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  secondaryModule === "general"
+                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <CalcIcon className="h-3.5 w-3.5" />
+                <span>Kalkulator Ogólny & Trygonometria</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveModule("equations")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                activeModule === "equations"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Variable className="h-3.5 w-3.5" />
-              <span>Równania & Delta (CKE)</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setSecondaryModule("equations")}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  secondaryModule === "equations"
+                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <Variable className="h-3.5 w-3.5" />
+                <span>Równania & Delta (Δ)</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveModule("geometry")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                activeModule === "geometry"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Compass className="h-3.5 w-3.5" />
-              <span>Geometria</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setSecondaryModule("geometry")}
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  secondaryModule === "geometry"
+                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                    : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <Compass className="h-3.5 w-3.5" />
+                <span>Geometria (Pitagoras / Trójkąty)</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* Główna zawartość */}
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-8 sm:px-6">
-        {activeModule === "general" && <Calculator />}
-        {activeModule === "equations" && <EquationSolver />}
-        {activeModule === "geometry" && <GeometryCalculator />}
+        {/* EKRAN GŁÓWNY: WYBÓR POZIOMU SZKOŁY */}
+        {level === null && (
+          <div className="space-y-8 py-4 sm:py-8">
+            <div className="text-center">
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                Wybierz swój etap edukacji
+              </span>
+              <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl dark:text-white">
+                Dedykowany Kalkulator Szkolny CKE
+              </h1>
+              <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">
+                Dopasowany ściśle do polskiej podstawy programowej. Wybierz szkołę, aby otrzymać narzędzia dostosowane do Twojego poziomu.
+              </p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* KARTA 1: SZKOŁA PODSTAWOWA */}
+              <div
+                onClick={() => selectLevel("primary")}
+                className="group relative flex cursor-pointer flex-col justify-between rounded-3xl border-2 border-emerald-200/80 bg-white p-6 shadow-sm transition hover:border-emerald-500 hover:shadow-xl dark:border-emerald-900/40 dark:bg-zinc-900 dark:hover:border-emerald-500"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-2xl font-bold text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
+                      🎒
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                      Egzamin 8-Klasisty
+                    </span>
+                  </div>
+
+                  <h2 className="mt-4 text-2xl font-bold text-zinc-900 dark:text-white">
+                    Kalkulator Klas 4–8 Szkół Podstawowych
+                  </h2>
+                  <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    Zaprojektowany specjalnie pod wymagania szkoły podstawowej i sprawdziany CKE:
+                  </p>
+
+                  <ul className="mt-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <strong>Ułamki zwykłe krok po kroku:</strong> wspólny mianownik (NWW), rozszerzanie, skracanie.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <strong>NWD i NWW:</strong> rozkład liczb na czynniki pierwsze.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <strong>Kalkulator procentów:</strong> podwyżki, obniżki, procent z liczby.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <strong>Wyłączanie czynnika przed pierwiastek:</strong> np. √50 = 5√2, ∛24 = 2∛3.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      <strong>Pola figur i prędkość (v = s / t).</strong>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    Otwórz kalkulator klas 4–8
+                  </span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition group-hover:translate-x-1 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-300">
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* KARTA 2: SZKOŁA PONADPODSTAWOWA */}
+              <div
+                onClick={() => selectLevel("secondary")}
+                className="group relative flex cursor-pointer flex-col justify-between rounded-3xl border-2 border-indigo-200/80 bg-white p-6 shadow-sm transition hover:border-indigo-500 hover:shadow-xl dark:border-indigo-900/40 dark:bg-zinc-900 dark:hover:border-indigo-500"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-2xl font-bold text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300">
+                      🎓
+                    </span>
+                    <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                      Matura CKE (Podstawa & Rozszerzenie)
+                    </span>
+                  </div>
+
+                  <h2 className="mt-4 text-2xl font-bold text-zinc-900 dark:text-white">
+                    Kalkulator dla Szkół Ponadpodstawowych
+                  </h2>
+                  <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    Zaawansowane narzędzie dla liceum i technikum przygotowujące do egzaminu maturalnego:
+                  </p>
+
+                  <ul className="mt-4 space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                      <strong>Równania kwadratowe z Deltą (Δ):</strong> pierwiastki x₁, x₂, postać kanoniczna i iloczynowa.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                      <strong>Trygonometria:</strong> tg, ctg, sin, cos, tryb DEG/RAD, jedynka trygonometryczna.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                      <strong>Logarytmy:</strong> dziesiętne, o dowolnej podstawie log(b; a) i naturalne ln.
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                      <strong>Geometria:</strong> twierdzenie Pitagorasa, trójkąty równoboczne, koła.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-6 flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                  <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                    Otwórz kalkulator ponadpodstawowy
+                  </span>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition group-hover:translate-x-1 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950/60 dark:text-indigo-300">
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* POZIOM 1: SZKOŁA PODSTAWOWA */}
+        {level === "primary" && <PrimarySchoolCalculator />}
+
+        {/* POZIOM 2: SZKOŁA PONADPODSTAWOWA */}
+        {level === "secondary" && (
+          <div>
+            {secondaryModule === "general" && <Calculator />}
+            {secondaryModule === "equations" && <EquationSolver />}
+            {secondaryModule === "geometry" && <GeometryCalculator />}
+          </div>
+        )}
       </main>
 
       {/* Stopka */}
