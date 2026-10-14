@@ -1,0 +1,13 @@
+# Ujednolicone końce linii (LF) między Windows i macOS
+* text=auto eol=lf
+
+# Pliki binarne
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
