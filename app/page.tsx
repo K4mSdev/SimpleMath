@@ -83,6 +83,7 @@ export default function Home() {
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
         onOpenInCalculator={level === "secondary" ? openScanInCalculator : undefined}
+        schoolLevel={level}
       />
     </div>
   );
