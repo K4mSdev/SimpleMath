@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { solveTaskWithFullProcess } from "@/lib/math-engine/standalone-solver";
 
 export interface SolutionStep {
   title: string;
@@ -131,14 +132,20 @@ Odpowiedz wyłącznie poprawnym obiektem JSON w formacie:
       });
     }
 
-    // Wywołanie Gemini API
-    const models = ["gemini-2.5-flash", "gemini-1.5-flash"];
+    // Wywołanie Gemini API z listą wspieranych modeli w Google AI Studio
+    const endpoints = [
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent",
+      "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent",
+    ];
     let lastError = "";
 
-    for (const model of models) {
+    for (const endpoint of endpoints) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `${endpoint}?key=${apiKey}`,
           {
             method: "POST",
             headers: {
@@ -191,19 +198,33 @@ Odpowiedz wyłącznie poprawnym obiektem JSON w formacie:
         return NextResponse.json({
           status: "ok",
           data: parsed,
+          engine: "gemini",
         });
       } catch (err: unknown) {
         lastError = err instanceof Error ? err.message : String(err);
       }
     }
 
-    return NextResponse.json(
-      {
-        status: "error",
-        message: `Nie udało się przetworzyć zadania: ${lastError}`,
-      },
-      { status: 502 }
-    );
+    // Jeśli Gemini nie odpowiedział lub wystąpił błąd modelu (np. 404),
+    // natychmiast uruchamiamy wbudowany silnik awaryjny (zero błędu dla użytkownika!)
+    if (textTask) {
+      const standalone = solveTaskWithFullProcess(textTask, instruction);
+      if (standalone) {
+        return NextResponse.json({
+          status: "ok",
+          data: standalone,
+          engine: "standalone",
+          notice: "Przetworzono za pomocą wbudowanego silnika SimpleMath.",
+        });
+      }
+    }
+
+    // Jeśli było samo zdjęcie i Gemini zwrócił błąd, informujemy klienta aby uruchomił lokalny silnik OCR
+    return NextResponse.json({
+      status: "fallback_to_local",
+      message: `Chmura AI jest chwilowo niedostępna (${lastError}). Uruchomiono wbudowany silnik odczytu i obliczeń.`,
+      engine: "standalone",
+    });
   } catch (error: unknown) {
     console.error("Błąd API /api/scan:", error);
     return NextResponse.json(

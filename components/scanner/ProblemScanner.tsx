@@ -22,11 +22,13 @@ import {
   ScanLine,
   Sparkles,
   X,
+  Zap,
 } from "lucide-react";
 import { MathTex } from "@/components/math/MathTex";
 import { prepareImageForOcr } from "@/lib/scanner/prepare-image";
 import { cleanOcrText } from "@/lib/scanner/ocr-text";
 import { solveTaskWithFullProcess } from "@/lib/math-engine/full-process";
+import { performStandaloneOcr, type DetectedTaskCandidate } from "@/lib/scanner/standalone-ocr";
 import type { GeminiTaskResponse } from "@/app/api/scan/route";
 
 export type ScanTarget = { text: string; kind: "equation" | "expression" | "geometry" | "word_problem" };
@@ -62,6 +64,12 @@ export function ProblemScanner({
   const [dragOver, setDragOver] = useState(false);
   const [showSteps, setShowSteps] = useState(true);
 
+  // Wybór silnika: "standalone" (lokalny, offline, 100% darmowy) vs "gemini" (chmura AI)
+  const [engineMode, setEngineMode] = useState<"standalone" | "gemini">("standalone");
+  const [detectedCandidates, setDetectedCandidates] = useState<DetectedTaskCandidate[]>([]);
+  const [activeCandidateId, setActiveCandidateId] = useState<string | null>(null);
+  const [engineNotice, setEngineNotice] = useState<string | null>(null);
+
   // Klucz API Gemini (opcjonalny, zapisywany w localStorage)
   const [apiKey, setApiKey] = useState("");
   const [showKeyModal, setShowKeyModal] = useState(false);
@@ -71,6 +79,7 @@ export function ProblemScanner({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const currentBlobRef = useRef<Blob | null>(null);
+  const currentCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Wczytanie klucza z pamięci podręcznej
   useEffect(() => {
@@ -100,8 +109,77 @@ export function ProblemScanner({
     setSolution(null);
     setEditableFormula("");
     setError(null);
+    setDetectedCandidates([]);
+    setActiveCandidateId(null);
+    setEngineNotice(null);
     currentBlobRef.current = null;
+    currentCanvasRef.current = null;
   }, []);
+
+  // Przetwarzanie obrazu wbudowanym silnikiem (100% lokalny OCR i solver)
+  const processWithStandaloneEngine = async (
+    canvas: HTMLCanvasElement,
+    currentInstruction: string = instruction
+  ) => {
+    setPhase("analyzing");
+    setStatusMessage("Wbudowany silnik OCR odczytuje zadanie ze zdjęcia...");
+    setError(null);
+    setEngineNotice("Wbudowany Silnik SimpleMath (Offline)");
+    try {
+      const ocrRes = await performStandaloneOcr(canvas, currentInstruction, (msg) => {
+        setStatusMessage(msg);
+      });
+
+      setDetectedCandidates(ocrRes.allCandidates);
+
+      const taskToSolve = ocrRes.selectedCandidate;
+      if (!taskToSolve) {
+        setManualText(ocrRes.fullRawText);
+        setTabMode("manual");
+        setPhase("idle");
+        setError(
+          "Nie udało się odczytać jednoznacznego zadania. Popraw treść w polu poniżej i kliknij 'Rozwiąż zadanie'."
+        );
+        return;
+      }
+
+      setActiveCandidateId(taskToSolve.id);
+      setStatusMessage("Wbudowany silnik generuje pełny proces rozwiązania...");
+      const localResult = solveTaskWithFullProcess(
+        taskToSolve.cleanMath,
+        currentInstruction || taskToSolve.label
+      );
+
+      if (localResult) {
+        setSolution(localResult);
+        setEditableFormula(localResult.cleanExpression);
+        setPhase("done");
+      } else {
+        setManualText(taskToSolve.cleanMath);
+        setTabMode("manual");
+        setPhase("idle");
+        setError(`Odczytano zadanie: "${taskToSolve.cleanMath}". Sprawdź zapis i kliknij 'Rozwiąż zadanie'.`);
+      }
+    } catch (err) {
+      console.error("Błąd wbudowanego silnika OCR:", err);
+      setError("Wystąpił problem z analizą obrazu. Upewnij się, że zdjęcie jest czytelne lub wpisz treść ręcznie.");
+      setPhase("error");
+    }
+  };
+
+  // Wybór innego kandydata zadania wykrytego na zdjęciu
+  const handleSelectCandidate = (cand: DetectedTaskCandidate) => {
+    setActiveCandidateId(cand.id);
+    const localRes = solveTaskWithFullProcess(cand.cleanMath, cand.label);
+    if (localRes) {
+      setSolution(localRes);
+      setEditableFormula(localRes.cleanExpression);
+      setPhase("done");
+    } else {
+      setManualText(cand.cleanMath);
+      setTabMode("manual");
+    }
+  };
 
   // Rozwiązanie zadania wpisanego ręcznie (błyskawiczne z pełnym procesem)
   const handleSolveManual = () => {
@@ -115,22 +193,25 @@ export function ProblemScanner({
       if (localResult) {
         setSolution(localResult);
         setEditableFormula(localResult.cleanExpression);
+        setEngineNotice("Wbudowany Silnik SimpleMath (Offline)");
         setPhase("done");
-      } else {
-        // Jeśli lokalny silnik potrzebuje pomocy AI
+      } else if (engineMode === "gemini") {
         void solveWithAiBackend(undefined, manualText, instruction);
+      } else {
+        setError("Nie rozpoznano typu zadania. Upewnij się, że wpisano poprawne równanie, ułamek lub geometrię.");
+        setPhase("error");
       }
     }, 150);
   };
 
-  // Wywołanie backendu AI
+  // Wywołanie backendu AI z natychmiastowym awaryjnym przejściem na silnik lokalny
   const solveWithAiBackend = async (
     base64Image?: string,
     rawTextTask?: string,
     taskInstruction?: string
   ) => {
     setPhase("analyzing");
-    setStatusMessage("Sztuczna inteligencja analizuje zadanie i tworzy pełny proces rozwiązania...");
+    setStatusMessage("Chmura AI analizuje zadanie i tworzy pełny proces rozwiązania...");
     setError(null);
 
     try {
@@ -151,20 +232,32 @@ export function ProblemScanner({
 
       const data = await res.json().catch(() => ({}));
 
+      if (data.status === "fallback_to_local") {
+        if (currentCanvasRef.current) {
+          setEngineNotice("Chmura AI była niedostępna. Uruchomiono Wbudowany Silnik SimpleMath.");
+          await processWithStandaloneEngine(currentCanvasRef.current, taskInstruction);
+          return;
+        }
+      }
+
       if (res.status === 401 || data.status === "need_key") {
-        // Jeśli brak klucza API, nie blokujemy użytkownika!
-        // Uruchamiamy lokalny silnik matematyczny
+        if (currentCanvasRef.current) {
+          setEngineNotice("Brak klucza API — zadanie rozwiązane przez Wbudowany Silnik SimpleMath.");
+          await processWithStandaloneEngine(currentCanvasRef.current, taskInstruction);
+          return;
+        }
         if (rawTextTask) {
           const fallback = solveTaskWithFullProcess(rawTextTask, taskInstruction);
           if (fallback) {
             setSolution(fallback);
             setEditableFormula(fallback.cleanExpression);
+            setEngineNotice("Wbudowany Silnik SimpleMath (Offline)");
             setPhase("done");
             return;
           }
         }
         setShowKeyModal(true);
-        setError("Wklej darmowy klucz Google Gemini API (poniżej), aby odczytywać zdjęcia zadań z podręcznika.");
+        setError("Wklej darmowy klucz Google Gemini API (poniżej) lub przełącz na Wbudowany Silnik SimpleMath.");
         setPhase("error");
         return;
       }
@@ -176,15 +269,21 @@ export function ProblemScanner({
       const result = data.data as GeminiTaskResponse;
       setSolution(result);
       setEditableFormula(result.cleanExpression);
+      setEngineNotice(data.engine === "standalone" ? "Wbudowany Silnik SimpleMath" : "Google Gemini AI (Chmura)");
       setPhase("done");
     } catch (err: unknown) {
-      console.warn("Błąd analizy AI, uruchamiam silnik awaryjny:", err);
-      // Próba lokalnego rozwiązania
+      console.warn("Błąd analizy AI, uruchamiam wbudowany silnik:", err);
+      if (currentCanvasRef.current) {
+        setEngineNotice("Chmura AI była niedostępna. Uruchomiono Wbudowany Silnik SimpleMath.");
+        await processWithStandaloneEngine(currentCanvasRef.current, taskInstruction);
+        return;
+      }
       if (rawTextTask) {
         const fallback = solveTaskWithFullProcess(rawTextTask, taskInstruction);
         if (fallback) {
           setSolution(fallback);
           setEditableFormula(fallback.cleanExpression);
+          setEngineNotice("Wbudowany Silnik SimpleMath (Offline)");
           setPhase("done");
           return;
         }
@@ -208,44 +307,16 @@ export function ProblemScanner({
       try {
         const { canvas, previewUrl: preview } = await prepareImageForOcr(blob);
         if (runId !== runIdRef.current) return;
+        currentCanvasRef.current = canvas;
         setPreviewUrl(preview);
 
-        // Jeśli użytkownik ma klucz lub jest skonfigurowany backend -> wysyłamy do AI
-        if (apiKey) {
-          await solveWithAiBackend(preview, undefined, currentInstruction);
+        if (engineMode === "standalone") {
+          await processWithStandaloneEngine(canvas, currentInstruction);
         } else {
-          // Próbujemy wywołać endpoint (może ma GEMINI_API_KEY w env na serwerze)
           try {
             await solveWithAiBackend(preview, undefined, currentInstruction);
           } catch {
-            // Jeśli na serwerze brak klucza, używamy lokalnego OCR + silnika matematycznego
-            setStatusMessage("Odczytuję tekst i wzory ze zdjęcia...");
-            const { createWorker } = await import("tesseract.js");
-            const worker = await createWorker("eng", 1);
-            const { data } = await worker.recognize(canvas);
-            await worker.terminate();
-
-            const cleaned = cleanOcrText(data.text);
-            if (!cleaned || data.confidence < 30) {
-              setShowKeyModal(true);
-              setError(
-                "Zdjęcie jest mało czytelne dla lokalnego OCR. Wpisz treść zadania w polu poniżej lub dodaj darmowy klucz Gemini AI dla 100% precyzji."
-              );
-              setPhase("error");
-              return;
-            }
-
-            const localResult = solveTaskWithFullProcess(cleaned, currentInstruction);
-            if (localResult) {
-              setSolution(localResult);
-              setEditableFormula(localResult.cleanExpression);
-              setPhase("done");
-            } else {
-              setManualText(cleaned);
-              setTabMode("manual");
-              setPhase("idle");
-              setError("Odczytano tekst zadania. Sprawdź go w polu poniżej i kliknij 'Rozwiąż zadanie'.");
-            }
+            await processWithStandaloneEngine(canvas, currentInstruction);
           }
         }
       } catch (e: unknown) {
@@ -255,7 +326,7 @@ export function ProblemScanner({
         setPhase("error");
       }
     },
-    [apiKey, instruction, schoolLevel]
+    [apiKey, engineMode, instruction, schoolLevel]
   );
 
   const onFileChosen = (e: ChangeEvent<HTMLInputElement>) => {
@@ -455,6 +526,41 @@ export function ProblemScanner({
         </div>
 
         <div className="space-y-4 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          {/* Przełącznik silnika: Wbudowany (Offline) vs Gemini AI */}
+          <div className="flex items-center gap-1.5 rounded-2xl bg-zinc-100 p-1.5 dark:bg-zinc-800/80">
+            <button
+              type="button"
+              onClick={() => {
+                setEngineMode("standalone");
+                setEngineNotice(null);
+              }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+                engineMode === "standalone"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-900 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <Zap className="h-4 w-4 text-amber-500" />
+              <span>Silnik Wbudowany (Offline & 100% Darmowy)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEngineMode("gemini");
+                setEngineNotice(null);
+                if (!apiKey) setShowKeyModal(true);
+              }}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+                engineMode === "gemini"
+                  ? "bg-white text-indigo-600 shadow-sm dark:bg-zinc-900 dark:text-indigo-400"
+                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <Sparkles className="h-4 w-4 text-indigo-500" />
+              <span>Chmura Gemini AI</span>
+            </button>
+          </div>
+
           {/* Panel konfiguracji darmowego klucza API */}
           {showKeyModal && (
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/80 p-4 text-xs dark:border-indigo-900/60 dark:bg-indigo-950/40">
@@ -610,6 +716,37 @@ export function ProblemScanner({
                   )}
                 </div>
               )}
+
+              {/* Wykryte zadania na stronie (gdy OCR rozpozna kilka zadań) */}
+              {detectedCandidates.length > 1 && (
+                <div className="rounded-2xl border border-indigo-200/80 bg-indigo-50/60 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/30">
+                  <div className="flex items-center justify-between text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                    <span>Wykryte zadania na zdjęciu ({detectedCandidates.length}):</span>
+                    <span className="text-[11px] font-normal text-indigo-600 dark:text-indigo-400">
+                      Kliknij, aby wybrać inne
+                    </span>
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {detectedCandidates.map((cand) => (
+                      <button
+                        key={cand.id}
+                        type="button"
+                        onClick={() => handleSelectCandidate(cand)}
+                        className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                          activeCandidateId === cand.id
+                            ? "bg-indigo-600 text-white shadow-sm"
+                            : "bg-white text-zinc-700 ring-1 ring-black/5 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-200 dark:ring-white/10"
+                        }`}
+                      >
+                        <span>{cand.label}</span>
+                        <span className="font-mono text-[11px] opacity-75">
+                          ({cand.cleanMath.slice(0, 15)})
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -663,15 +800,22 @@ export function ProblemScanner({
           {/* WYNIK: PEŁNY PROCES ROZWIĄZYWANIA ZADANIA */}
           {phase === "done" && solution && (
             <div className="space-y-4 pt-2">
-              {/* Belka z tytułem zadania */}
-              <div className="flex items-center justify-between rounded-xl bg-indigo-50 px-4 py-2.5 text-xs font-bold text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300">
+              {/* Belka z tytułem zadania i silnikiem */}
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-indigo-50 px-4 py-2.5 text-xs font-bold text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300">
                 <div className="flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-amber-500" />
                   <span>{solution.detectedTaskTitle}</span>
                 </div>
-                <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-300">
-                  Zgodne z CKE
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {engineNotice && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
+                      {engineNotice}
+                    </span>
+                  )}
+                  <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold text-zinc-700 shadow-sm dark:bg-zinc-900 dark:text-zinc-300">
+                    Zgodne z CKE
+                  </span>
+                </div>
               </div>
 
               {/* Karta 1: Dane i założenia (jeśli są) */}
