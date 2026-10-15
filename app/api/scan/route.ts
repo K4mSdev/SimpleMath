@@ -72,7 +72,9 @@ export async function POST(req: NextRequest) {
     const schoolContext =
       schoolLevel === "primary"
         ? "Poziom: Szkoła podstawowa (klasy 4-8, egzamin ósmoklasisty CKE). Wyjaśniaj przystępnym językiem, używaj ułamków zwykłych i podstawowych wzorów."
-        : "Poziom: Szkoła ponadpodstawowa (liceum/technikum, matura CKE). Używaj oficjalnych wzorów maturalnych CKE, delty, postaci kanonicznej/iloczynowej itp.";
+        : schoolLevel === "secondary"
+        ? "Poziom: Szkoła ponadpodstawowa (liceum/technikum, matura CKE). Używaj oficjalnych wzorów maturalnych CKE: delty, postaci kanonicznej/iloczynowej, nierówności kwadratowych z przedziałami, logarytmów, ciągów arytmetycznych i geometrycznych, trygonometrii, geometrii analitycznej i stereometrii."
+        : "Poziom: Uniwersalny (zarówno szkoła podstawowa klasy 4-8, jak i szkoła ponadpodstawowa liceum/technikum Matura CKE). Automatycznie dobierz poziom do treści zadania ze zdjęcia.";
 
     const userPrompt = instruction?.trim()
       ? `Użytkownik wskazał które konkretnie zadanie należy zrobić: "${instruction.trim()}". Odszukaj dokładnie to zadanie i rozwiąż je.`

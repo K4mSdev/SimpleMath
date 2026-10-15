@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Header, Footer, LevelSelector, type SchoolLevel, type SecondaryModule } from "@/components/layout";
+import { Header, Footer, LevelSelector, type SchoolLevel } from "@/components/layout";
 import { PrimarySchoolCalculator } from "@/components/primary";
-import { ScientificCalculator, EquationSolver, GeometryCalculator } from "@/components/secondary";
+import { SecondarySchoolView } from "@/components/secondary";
 import { DocsModal } from "@/components/docs/DocsModal";
 import { ProblemScanner, type ScanTarget } from "@/components/scanner/ProblemScanner";
 
 export default function Home() {
   const [level, setLevel] = useState<SchoolLevel>(null);
-  const [secondaryModule, setSecondaryModule] = useState<SecondaryModule>("general");
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   // Tekst z skanera przekazywany do kalkulatora; zmiana nonce wymusza ponowne zamontowanie z nową wartością.
@@ -35,8 +34,7 @@ export default function Home() {
     }
   };
 
-  const openScanInCalculator = ({ text, kind }: ScanTarget) => {
-    setSecondaryModule(kind === "equation" ? "equations" : "general");
+  const openScanInCalculator = ({ text }: ScanTarget) => {
     setScanInput((prev) => ({ text, nonce: prev.nonce + 1 }));
     setIsScannerOpen(false);
   };
@@ -46,8 +44,6 @@ export default function Home() {
       <Header
         level={level}
         onSelectLevel={selectLevel}
-        secondaryModule={secondaryModule}
-        onSelectSecondaryModule={setSecondaryModule}
         onOpenDocs={() => setIsDocsOpen(true)}
         onOpenScanner={() => setIsScannerOpen(true)}
       />
@@ -59,17 +55,13 @@ export default function Home() {
         {/* POZIOM 1: SZKOŁA PODSTAWOWA (KLASY 4-8) */}
         {level === "primary" && <PrimarySchoolCalculator />}
 
-        {/* POZIOM 2: SZKOŁA PONADPODSTAWOWA (LICEUM / TECHNIKUM) */}
+        {/* POZIOM 2: SZKOŁA PONADPODSTAWOWA (LICEUM / TECHNIKUM / MATURA CKE) */}
         {level === "secondary" && (
-          <div>
-            {secondaryModule === "general" && (
-              <ScientificCalculator key={`sci-${scanInput.nonce}`} initialInput={scanInput.text} />
-            )}
-            {secondaryModule === "equations" && (
-              <EquationSolver key={`eq-${scanInput.nonce}`} initialInput={scanInput.text} />
-            )}
-            {secondaryModule === "geometry" && <GeometryCalculator />}
-          </div>
+          <SecondarySchoolView
+            key={`sec-${scanInput.nonce}`}
+            initialInput={scanInput.text}
+            onOpenScanner={() => setIsScannerOpen(true)}
+          />
         )}
       </main>
 

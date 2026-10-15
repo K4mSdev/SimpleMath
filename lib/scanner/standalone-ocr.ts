@@ -127,11 +127,11 @@ export function normalizeOcrMath(raw: string): string {
     .replace(/√/g, "sqrt")
     .replace(/Delta|DELTA/g, "Δ");
 
-  // Potęgi w druku szkolnym (np. x2 -> x^2, x3 -> x^3)
+  // Potęgi w druku szkolnym (np. x2 -> x^2, x3 -> x^3 - wyłącznie dla pojedynczych zmiennych)
   text = text
-    .replace(/([a-zA-Z])\s*2(?=[+\-*/=,\s)]|$)/g, "$1^2")
-    .replace(/([a-zA-Z])\s*3(?=[+\-*/=,\s)]|$)/g, "$1^3")
-    .replace(/([a-zA-Z])\s*4(?=[+\-*/=,\s)]|$)/g, "$1^4");
+    .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*2(?=[+\-*/=,\s)]|$)/g, "$1$2^2")
+    .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*3(?=[+\-*/=,\s)]|$)/g, "$1$2^3")
+    .replace(/(^|[^a-zA-Z])([a-zA-Z])\s*4(?=[+\-*/=,\s)]|$)/g, "$1$2^4");
 
   // Cyfry i zmienne: litera O jako 0, l lub I jako 1 obok cyfr
   text = text
@@ -216,6 +216,49 @@ export function extractPureMathExpression(raw: string): {
     };
   }
 
+  // 1b. Ciągi liczbowe (arytmetyczny i geometryczny)
+  if (lower.includes("ciąg") || lower.includes("ciag") || /\ba1\s*=/i.test(normalized)) {
+    return {
+      expression: normalized.replace(/^(?:zad(?:anie)?\.?\s*\d+[a-z]?[\s:.)-]*|[a-z]\)[\s:.]*)/i, "").trim(),
+      contextTitle: "Ciągi liczbowe (CKE Matura)",
+      detectedType: "word_problem",
+    };
+  }
+
+  // 1c. Logarytmy
+  if (lower.includes("log") || lower.includes("ln")) {
+    return {
+      expression: normalized.replace(/^(?:zad(?:anie)?\.?\s*\d+[a-z]?[\s:.)-]*|[a-z]\)[\s:.]*|oblicz(?:\s+wartość)?[\s:.]*)/i, "").trim(),
+      contextTitle: "Logarytmy (CKE Matura)",
+      detectedType: "expression",
+    };
+  }
+
+  // 1d. Stereometria (bryły)
+  if (
+    lower.includes("sześcian") ||
+    lower.includes("szescian") ||
+    lower.includes("walec") ||
+    lower.includes("stożek") ||
+    lower.includes("stozek") ||
+    lower.includes("kula")
+  ) {
+    return {
+      expression: normalized.replace(/^(?:zad(?:anie)?\.?\s*\d+[a-z]?[\s:.)-]*|[a-z]\)[\s:.]*)/i, "").trim(),
+      contextTitle: "Stereometria — bryły przestrzenne",
+      detectedType: "geometry",
+    };
+  }
+
+  // 1e. Geometria analityczna
+  if (lower.includes("odcinek") || lower.includes("prosta") || /[ab]\s*\([+-]?\d+/i.test(normalized)) {
+    return {
+      expression: normalized.replace(/^(?:zad(?:anie)?\.?\s*\d+[a-z]?[\s:.)-]*|[a-z]\)[\s:.]*)/i, "").trim(),
+      contextTitle: "Geometria analityczna",
+      detectedType: "geometry",
+    };
+  }
+
   // 4. Usuwamy polskie prefiksy poleceń szkolnych
   const instructionPrefixes = [
     /^[.:)\s-]+/,
@@ -223,7 +266,8 @@ export function extractPureMathExpression(raw: string): {
     /^(?:[a-z]\)[\s:.]*)/i,
     /^(?:rozw(?:i|ią)ż(?:\s+równanie|\s+nierówność)?[\s:.]*)/i,
     /^(?:oblicz(?:\s+wartość)?(?:\s+wyrażenia|\s+ułamek|\s+ułamki|\s+deltę|\s+pierwiastki|\s+miejsca\s+zerowe)?[\s:.]*)/i,
-    /^(?:wyznacz(?:\s+x|\s+rozwiązania|\s+pierwiastki|\s+miejsca\s+zerowe)?[\s:.]*)/i,
+    /^(?:wyznacz(?:\s+x|\s+rozwiązania|\s+pierwiastki|\s+miejsca\s+zerowe|\s+zbiór\s+rozwiązań|\s+dziedzinę)?[\s:.]*)/i,
+    /^(?:zbadaj(?:\s+własności|\s+monotoniczność|\s+przebieg)?[\s:.]*)/i,
     /^(?:dla\s+jakich\s+x(?:\s+zachodzi)?[\s:.]*)/i,
     /^(?:wykonaj(?:\s+działania|\s+mnożenie|\s+dzielenie)?[\s:.]*)/i,
     /^(?:doprowadź\s+do\s+najprostszej\s+postaci[\s:.]*)/i,
@@ -241,10 +285,11 @@ export function extractPureMathExpression(raw: string): {
     }
   }
 
-  // 5. Usuwamy końcowe interpunkcje, pytajniki i jednostki
+  // 5. Usuwamy końcowe interpunkcje, pytajniki i jednostki (zachowujemy '!' po cyfrze jako silnię)
   stripped = stripped
     .replace(/\s*=\s*$/, "")
-    .replace(/[.?!;:]+$/, "")
+    .replace(/[.?;:]+$/, "")
+    .replace(/(?<!\d)!+$/, "")
     .replace(/\s*(?:cm|dm|m|mm|km|zł)\s*$/i, "")
     .trim();
 

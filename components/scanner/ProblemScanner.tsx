@@ -43,7 +43,17 @@ interface ProblemScannerProps {
 type TabMode = "camera" | "manual";
 type Phase = "idle" | "preparing" | "analyzing" | "done" | "error";
 
-const QUICK_TASK_SUGGESTIONS = ["Zadanie 1", "Zadanie 2", "Zadanie 3a", "Zadanie 3b", "Zadanie 4", "Zadanie 5"];
+const QUICK_TASK_SUGGESTIONS = [
+  "Zadanie 1",
+  "Zadanie 2",
+  "Równanie z deltą (Δ)",
+  "Nierówność kwadratowa",
+  "Ciąg arytmetyczny",
+  "Logarytmy",
+  "Trygonometria",
+  "Geometria analityczna",
+  "Bryły (walec/kula)",
+];
 
 export function ProblemScanner({
   isOpen,
@@ -488,11 +498,11 @@ export function ProblemScanner({
                 </h2>
                 <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
                   <BrainCircuit className="h-3 w-3" />
-                  Krok po kroku
+                  SP 4–8 & LO / Technikum
                 </span>
               </div>
               <p className="text-xs text-zinc-500">
-                Pokazuje cały proces obliczeniowy, dane, wzory i sprawdzenie
+                Uniwersalny odczyt dla szkoły podstawowej i ponadpodstawowej (Matura CKE)
               </p>
             </div>
           </div>

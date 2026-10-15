@@ -1,5 +1,14 @@
 export { ScientificCalculator } from "./ScientificCalculator";
 export { EquationSolver } from "./EquationSolver";
 export { GeometryCalculator } from "./GeometryCalculator";
+export { SecondarySchoolView } from "./SecondarySchoolView";
 export { History } from "./History";
 export { Keypad } from "./Keypad";
+export { QuadraticInequalitiesModule } from "./modules/QuadraticInequalitiesModule";
+export { SequencesModule } from "./modules/SequencesModule";
+export { LogarithmsModule } from "./modules/LogarithmsModule";
+export { TrigonometryModule } from "./modules/TrigonometryModule";
+export { AnalyticGeometryModule } from "./modules/AnalyticGeometryModule";
+export { StereometryModule } from "./modules/StereometryModule";
+export { CombinatoricsModule } from "./modules/CombinatoricsModule";
+export { FunctionAnalysisModule } from "./modules/FunctionAnalysisModule";

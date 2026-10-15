@@ -128,5 +128,93 @@ describe("solveTaskWithFullProcess (Wbudowany Silnik Rozwiązywania Zadań)", ()
       expect(res.finalAnswerTex).toContain("4");
     }
   });
+
+  it("generuje pełny proces dla nierówności kwadratowej (Matura CKE)", () => {
+    const res = solveTaskWithFullProcess("x^2 - 5x + 6 > 0");
+    expect(res).not.toBeNull();
+    if (res) {
+      expect(res.taskType).toBe("equation");
+      expect(res.finalAnswerTex).toContain("-\\infty");
+      expect(res.finalAnswerTex).toContain("+\\infty");
+      expect(res.finalAnswerTex).toContain("2");
+      expect(res.finalAnswerTex).toContain("3");
+    }
+  });
+
+  it("generuje pełny proces dla logarytmów", () => {
+    const res1 = solveTaskWithFullProcess("log_2(8)");
+    expect(res1).not.toBeNull();
+    if (res1) {
+      expect(res1.finalAnswerTex).toBe("3");
+    }
+
+    const res2 = solveTaskWithFullProcess("log_2(16) + log_2(4)");
+    expect(res2).not.toBeNull();
+    if (res2) {
+      expect(res2.finalAnswerTex).toBe("6");
+    }
+  });
+
+  it("generuje pełny proces dla ciągów liczbowych", () => {
+    const resA = solveTaskWithFullProcess("ciąg arytmetyczny a1=3, r=2, n=10");
+    expect(resA).not.toBeNull();
+    if (resA) {
+      expect(resA.finalAnswerTex).toContain("21"); // a10 = 3 + 9*2 = 21
+      expect(resA.finalAnswerTex).toContain("120"); // S10 = ((3+21)/2)*10 = 120
+    }
+
+    const resG = solveTaskWithFullProcess("ciąg geometryczny a1=2, q=3, n=4");
+    expect(resG).not.toBeNull();
+    if (resG) {
+      expect(resG.finalAnswerTex).toContain("54"); // a4 = 2*27 = 54
+    }
+  });
+
+  it("generuje pełny proces dla trygonometrii", () => {
+    const res = solveTaskWithFullProcess("sin(30)");
+    expect(res).not.toBeNull();
+    if (res) {
+      expect(res.finalAnswerTex).toContain("1");
+      expect(res.finalAnswerTex).toContain("2");
+    }
+  });
+
+  it("generuje pełny proces dla równania wymiernego", () => {
+    const res = solveTaskWithFullProcess("(2x + 4)/(x - 1) = 3");
+    expect(res).not.toBeNull();
+    if (res) {
+      expect(res.taskType).toBe("equation");
+      expect(res.finalAnswerTex).toContain("7");
+    }
+  });
+
+  it("generuje pełny proces dla geometrii analitycznej i brył", () => {
+    const resGeom = solveTaskWithFullProcess("A(1, 2), B(4, 6)");
+    expect(resGeom).not.toBeNull();
+    if (resGeom) {
+      expect(resGeom.finalAnswerTex).toContain("5"); // |AB| = sqrt(3^2 + 4^2) = 5
+      expect(resGeom.finalAnswerTex).toContain("S = (2.5");
+    }
+
+    const resSolid = solveTaskWithFullProcess("walec r=3, h=5");
+    expect(resSolid).not.toBeNull();
+    if (resSolid) {
+      expect(resSolid.finalAnswerTex).toContain("45\\pi"); // V = pi * 9 * 5 = 45pi
+    }
+  });
+
+  it("generuje pełny proces dla kombinatoryki (silnia i symbol Newtona)", () => {
+    const resFact = solveTaskWithFullProcess("5!");
+    expect(resFact).not.toBeNull();
+    if (resFact) {
+      expect(resFact.finalAnswerTex).toBe("120");
+    }
+
+    const resNewton = solveTaskWithFullProcess("symbol Newtona (6 po 2)");
+    expect(resNewton).not.toBeNull();
+    if (resNewton) {
+      expect(resNewton.finalAnswerTex).toBe("15");
+    }
+  });
 });
 

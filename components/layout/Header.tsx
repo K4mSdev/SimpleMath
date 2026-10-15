@@ -8,8 +8,8 @@ export type SecondaryModule = "general" | "equations" | "geometry";
 interface HeaderProps {
   level: SchoolLevel;
   onSelectLevel: (level: SchoolLevel) => void;
-  secondaryModule: SecondaryModule;
-  onSelectSecondaryModule: (module: SecondaryModule) => void;
+  secondaryModule?: SecondaryModule;
+  onSelectSecondaryModule?: (module: SecondaryModule) => void;
   onOpenDocs: () => void;
   onOpenScanner: () => void;
 }
@@ -17,8 +17,6 @@ interface HeaderProps {
 export function Header({
   level,
   onSelectLevel,
-  secondaryModule,
-  onSelectSecondaryModule,
   onOpenDocs,
   onOpenScanner,
 }: HeaderProps) {
@@ -99,51 +97,6 @@ export function Header({
         </div>
       </div>
 
-      {/* Zakładki kategorii dla szkoły ponadpodstawowej */}
-      {level === "secondary" && (
-        <div className="border-t border-zinc-100 dark:border-zinc-800">
-          <div className="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-4 py-1.5 sm:px-6">
-            <button
-              type="button"
-              onClick={() => onSelectSecondaryModule("general")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                secondaryModule === "general"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <CalcIcon className="h-3.5 w-3.5" />
-              <span>Kalkulator Ogólny & Trygonometria</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onSelectSecondaryModule("equations")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                secondaryModule === "equations"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Variable className="h-3.5 w-3.5" />
-              <span>Równania & Delta (Δ)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onSelectSecondaryModule("geometry")}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                secondaryModule === "geometry"
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-              }`}
-            >
-              <Compass className="h-3.5 w-3.5" />
-              <span>Geometria (Pitagoras / Trójkąty)</span>
-            </button>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
