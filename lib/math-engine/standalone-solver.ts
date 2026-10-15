@@ -6,6 +6,7 @@ import {
   extractRootFactor,
   computePercentage,
 } from "./primary";
+import { extractPureMathExpression } from "@/lib/scanner/standalone-ocr";
 import type { GeminiTaskResponse, SolutionStep } from "@/app/api/scan/route";
 
 /**
@@ -651,31 +652,36 @@ export function solveTaskWithFullProcess(
   rawInput: string,
   instruction?: string
 ): GeminiTaskResponse | null {
-  const trimmed = rawInput.trim();
+  if (!rawInput || !rawInput.trim()) return null;
+
+  // Najpierw wyciągamy czyste wyrażenie matematyczne (usuwając słowa typu "Rozwiąż równanie:", "Zadanie 1" itp.)
+  const parsed = extractPureMathExpression(rawInput);
+  const trimmed = parsed.expression.trim();
+  const taskTitle = instruction?.trim() || parsed.contextTitle;
   if (!trimmed) return null;
 
   // 1. Sprawdzamy czy to układ równań
-  const systemRes = trySolveSystemOfEquations(trimmed, instruction);
+  const systemRes = trySolveSystemOfEquations(trimmed, taskTitle);
   if (systemRes) return systemRes;
 
   // 2. Sprawdzamy czy to nierówność liniowa
-  const ineqRes = trySolveLinearInequality(trimmed, instruction);
+  const ineqRes = trySolveLinearInequality(trimmed, taskTitle);
   if (ineqRes) return ineqRes;
 
   // 3. Sprawdzamy geometrię / Pitagorasa / planimetrię
-  const geomRes = trySolveGeometryProblem(trimmed, instruction);
+  const geomRes = trySolveGeometryProblem(trimmed, taskTitle);
   if (geomRes) return geomRes;
 
   // 4. Sprawdzamy procenty
-  const percentRes = trySolvePercentageProblem(trimmed, instruction);
+  const percentRes = trySolvePercentageProblem(trimmed, taskTitle);
   if (percentRes) return percentRes;
 
   // 5. Sprawdzamy pierwiastki / wyłączanie czynnika
-  const rootRes = trySolveRootFactor(trimmed, instruction);
+  const rootRes = trySolveRootFactor(trimmed, taskTitle);
   if (rootRes) return rootRes;
 
   // 6. Sprawdzamy NWD / NWW
-  const gcdLcmRes = trySolveGcdLcm(trimmed, instruction);
+  const gcdLcmRes = trySolveGcdLcm(trimmed, taskTitle);
   if (gcdLcmRes) return gcdLcmRes;
 
   // 7. Sprawdzamy równanie kwadratowe lub liniowe z x

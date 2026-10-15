@@ -47,13 +47,25 @@ export async function POST(req: NextRequest) {
       process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
+      if (textTask) {
+        const standalone = solveTaskWithFullProcess(textTask, instruction);
+        if (standalone) {
+          return NextResponse.json({
+            status: "ok",
+            data: standalone,
+            engine: "standalone",
+            notice: "Przetworzono za pomocą wbudowanego silnika SimpleMath.",
+          });
+        }
+      }
+
       return NextResponse.json(
         {
-          status: "need_key",
+          status: "fallback_to_local",
           message:
-            "Aby skanować zadania aparatem i zobaczyć pełny proces rozwiązania ze sztuczną inteligencją Gemini, wpisz darmowy klucz API.",
+            "Zadanie zostanie przetworzone przez wbudowany silnik SimpleMath.",
         },
-        { status: 401 }
+        { status: 200 }
       );
     }
 
@@ -106,7 +118,7 @@ Odpowiedz wyłącznie poprawnym obiektem JSON w formacie:
 }`;
 
     // Budowa części zapytania (tekst + opcjonalny obraz)
-    const parts: Array<{ text: string } | { inline_data: { mime_type: string; data: string } }> = [
+    const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
       { text: systemInstruction },
     ];
 
@@ -125,8 +137,8 @@ Odpowiedz wyłącznie poprawnym obiektem JSON w formacie:
       }
 
       parts.push({
-        inline_data: {
-          mime_type: mimeType,
+        inlineData: {
+          mimeType: mimeType,
           data: base64Data,
         },
       });

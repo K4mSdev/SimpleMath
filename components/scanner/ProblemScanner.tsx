@@ -132,33 +132,57 @@ export function ProblemScanner({
 
       setDetectedCandidates(ocrRes.allCandidates);
 
-      const taskToSolve = ocrRes.selectedCandidate;
-      if (!taskToSolve) {
-        setManualText(ocrRes.fullRawText);
-        setTabMode("manual");
-        setPhase("idle");
-        setError(
-          "Nie udało się odczytać jednoznacznego zadania. Popraw treść w polu poniżej i kliknij 'Rozwiąż zadanie'."
-        );
-        return;
+      // 1. Sprawdzamy wybranego kandydata
+      let taskToSolve = ocrRes.selectedCandidate;
+      let localResult = taskToSolve
+        ? solveTaskWithFullProcess(taskToSolve.cleanMath, currentInstruction || taskToSolve.label)
+        : null;
+
+      // 2. Jeśli wybrany kandydat nie zwrócił rozwiązania, sprawdzamy pozostałych kandydatów
+      if (!localResult && ocrRes.allCandidates.length > 0) {
+        for (const cand of ocrRes.allCandidates) {
+          const testRes = solveTaskWithFullProcess(cand.cleanMath, cand.label);
+          if (testRes) {
+            taskToSolve = cand;
+            localResult = testRes;
+            break;
+          }
+        }
       }
 
-      setActiveCandidateId(taskToSolve.id);
-      setStatusMessage("Wbudowany silnik generuje pełny proces rozwiązania...");
-      const localResult = solveTaskWithFullProcess(
-        taskToSolve.cleanMath,
-        currentInstruction || taskToSolve.label
-      );
+      // 3. Jeśli nadal brak rozwiązania, sprawdzamy pełny połączony tekst z całego zdjęcia
+      if (!localResult && ocrRes.fullRawText.trim()) {
+        const fullRes = solveTaskWithFullProcess(ocrRes.fullRawText, currentInstruction);
+        if (fullRes) {
+          localResult = fullRes;
+          taskToSolve = {
+            id: "full-ocr",
+            label: "Zadanie ze zdjęcia",
+            rawText: ocrRes.fullRawText,
+            cleanMath: fullRes.cleanExpression,
+            confidence: 85,
+          };
+        }
+      }
+
+      const activeText = taskToSolve?.cleanMath || ocrRes.fullRawText.trim();
+      if (taskToSolve) {
+        setActiveCandidateId(taskToSolve.id);
+      }
+      setEditableFormula(activeText);
 
       if (localResult) {
         setSolution(localResult);
-        setEditableFormula(localResult.cleanExpression);
         setPhase("done");
       } else {
-        setManualText(taskToSolve.cleanMath);
+        // Jeśli zadanie nie pasuje do żadnego z wbudowanych wzorców,
+        // wstawiamy odczytaną treść do pola edycji i pozwalamy użytkownikowi jednym kliknięciem przeliczyć
+        setManualText(activeText);
         setTabMode("manual");
         setPhase("idle");
-        setError(`Odczytano zadanie: "${taskToSolve.cleanMath}". Sprawdź zapis i kliknij 'Rozwiąż zadanie'.`);
+        setError(
+          `Odczytano zadanie: "${activeText.slice(0, 90)}${activeText.length > 90 ? "..." : ""}". Sprawdź zapis poniżej i kliknij 'Pokaż cały proces'.`
+        );
       }
     } catch (err) {
       console.error("Błąd wbudowanego silnika OCR:", err);

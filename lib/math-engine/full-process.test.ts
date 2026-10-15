@@ -106,4 +106,27 @@ describe("solveTaskWithFullProcess (Wbudowany Silnik Rozwiązywania Zadań)", ()
       expect(res.steps.length).toBe(2);
     }
   });
+
+  it("rozpoznaje i rozwiązuje zadanie z pełnym poleceniem po polsku ze zdjęcia", () => {
+    const res = solveTaskWithFullProcess("Zadanie 1. Rozwiąż równanie: 2x2 - 4x - 6 = 0");
+    expect(res).not.toBeNull();
+    if (res) {
+      expect(res.taskType).toBe("equation");
+      expect(res.cleanExpression).toBe("2x^2 - 4x - 6 = 0");
+      expect(res.finalAnswerTex).toContain("x_1");
+      expect(res.finalAnswerTex).toContain("x_2");
+    }
+  });
+
+  it("rozpoznaje ułamki z prefiksem i znakiem równości na końcu", () => {
+    const res = solveTaskWithFullProcess("Oblicz wartość wyrażenia: 3/4 + 1/2 =");
+    expect(res).not.toBeNull();
+    if (res) {
+      expect(res.taskType).toBe("expression");
+      expect(res.cleanExpression).toBe("3/4 + 1/2");
+      expect(res.finalAnswerTex).toContain("5");
+      expect(res.finalAnswerTex).toContain("4");
+    }
+  });
 });
+
