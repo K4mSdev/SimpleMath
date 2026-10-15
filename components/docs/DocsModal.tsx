@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { BookOpen, Check, ChevronRight, HelpCircle, Lightbulb, X } from "lucide-react";
 import { MathTex } from "@/components/math/MathTex";
+import {
+  RightTriangleDiagram,
+  SpeedTriangleDiagram,
+  ParabolaDiagram,
+  TriangleDiagram,
+  TrapezoidDiagram,
+} from "@/components/math/diagrams";
 
 interface DocsModalProps {
   isOpen: boolean;
@@ -138,6 +145,61 @@ const GLOSSARY: TermDoc[] = [
     exampleInput: "1:3 + 0,5",
     exampleResult: "= 5/6 = 0,8(3)",
     ckeNote: "Na egzaminie 8-klasisty i maturze wynik w postaci ułamka nieskracalnego to standard wymagany przez CKE.",
+  },
+  {
+    key: "pythagoras",
+    name: "Twierdzenie Pitagorasa (a² + b² = c²)",
+    shortcut: "a² + b² = c²",
+    schoolMeaning:
+      "Podstawowe twierdzenie geometrii: w trójkącie prostokątnym suma kwadratów przyprostokątnych równa się kwadratowi przeciwprostokątnej.",
+    mathFormula: "a^2 + b^2 = c^2 \\iff c = \\sqrt{a^2 + b^2}",
+    exampleInput: "3² + 4²",
+    exampleResult: "= 9 + 16 = 25 (c = 5)",
+    ckeNote: "Kultowe trójki pitagorejskie w CKE: (3, 4, 5), (5, 12, 13), (8, 15, 17).",
+  },
+  {
+    key: "triangle_area",
+    name: "Pole trójkąta (Wzór z wysokością h)",
+    shortcut: "P = (a·h)/2",
+    schoolMeaning:
+      "Pole dowolnego trójkąta to połowa iloczynu długości podstawy i wysokości opuszczonej prostopadle na tę podstawę.",
+    mathFormula: "P = \\frac{a \\cdot h}{2}",
+    exampleInput: "a = 6, h = 5",
+    exampleResult: "P = (6 · 5) / 2 = 15",
+    ckeNote: "Wysokość musi tworzyć kąt prosty (90°) z podstawą lub jej przedłużeniem.",
+  },
+  {
+    key: "trapezoid_area",
+    name: "Pole trapezu (Podstawy a, b i wysokość h)",
+    shortcut: "P = (a+b)h/2",
+    schoolMeaning:
+      "Pole trapezu to połowa sumy długości obu równoległych podstaw pomnożona przez odległość między nimi (wysokość h).",
+    mathFormula: "P = \\frac{(a + b) \\cdot h}{2}",
+    exampleInput: "a = 6, b = 4, h = 5",
+    exampleResult: "P = ((6 + 4) · 5) / 2 = 25",
+    ckeNote: "Częste zadanie CKE: wysokość trapezu opuszczona z wierzchołka odcina trójkąt prostokątny, z którego liczy się h z twierdzenia Pitagorasa.",
+  },
+  {
+    key: "speed_triangle",
+    name: "Prędkość, Droga, Czas (Trójkąt s, v, t)",
+    shortcut: "v = s / t",
+    schoolMeaning:
+      "Mnemotechniczny trójkąt fizyczno-matematyczny. Pozioma kreska oznacza dzielenie (÷), pionowa mnożenie (·).",
+    mathFormula: "v = \\frac{s}{t}, \\quad s = v \\cdot t, \\quad t = \\frac{s}{v}",
+    exampleInput: "120 km / 2 h",
+    exampleResult: "= 60 km/h (16,67 m/s)",
+    ckeNote: "Zamiana jednostek: 1 km/h = 1000m / 3600s = 1/3,6 m/s. Z km/h na m/s dzielimy przez 3,6.",
+  },
+  {
+    key: "quadratic_parabola",
+    name: "Wyróżnik Δ i Wierzchołek paraboli",
+    shortcut: "Δ = b² - 4ac",
+    schoolMeaning:
+      "Wyróżnik równania kwadratowego Δ decyduje o liczbie pierwiastków, a wierzchołek W(p, q) określa punkt zwrotny wykresu paraboli.",
+    mathFormula: "\\Delta = b^2 - 4ac, \\quad p = -\\frac{b}{2a}, \\quad q = -\\frac{\\Delta}{4a}",
+    exampleInput: "x² - 5x + 6 = 0",
+    exampleResult: "Δ = 1, x₁ = 2, x₂ = 3, W = (2.5, -0.25)",
+    ckeNote: "Gdy a > 0 ramiona paraboli skierowane są do góry (funkcja ma minimum w q), gdy a < 0 ramiona idą w dół (maksimum w q).",
   },
 ];
 
@@ -279,6 +341,61 @@ export function DocsModal({ isOpen, onClose }: DocsModalProps) {
                     <span className="font-bold">Wskazówka egzaminacyjna CKE: </span>
                     {current.ckeNote}
                   </div>
+                </div>
+              )}
+
+              {/* Rysunek pomocniczy ze wzorem */}
+              {(current.key === "tg" || current.key === "ctg" || current.key === "sin_cos") && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Rysunek poglądowy z oznaczeniami
+                  </h4>
+                  <RightTriangleDiagram a="a" b="b" c="c" showTrig={true} className="w-full" />
+                </div>
+              )}
+
+              {current.key === "pythagoras" && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Rysunek trójkąta prostokątnego
+                  </h4>
+                  <RightTriangleDiagram a="a" b="b" c="c" showTrig={false} className="w-full" />
+                </div>
+              )}
+
+              {current.key === "triangle_area" && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Rysunek trójkąta z wysokością h
+                  </h4>
+                  <TriangleDiagram a={6} h={5} className="w-full" />
+                </div>
+              )}
+
+              {current.key === "trapezoid_area" && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Rysunek trapezu z wysokością h
+                  </h4>
+                  <TrapezoidDiagram a={6} b={4} h={5} className="w-full" />
+                </div>
+              )}
+
+              {current.key === "speed_triangle" && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Szkolny trójkąt s, v, t
+                  </h4>
+                  <SpeedTriangleDiagram active="v" s="120" v="60" t="2" className="w-full" />
+                </div>
+              )}
+
+              {current.key === "quadratic_parabola" && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    Wykres paraboli, wierzchołek W i miejsca zerowe
+                  </h4>
+                  <ParabolaDiagram a={1} p={2.5} q={-0.25} delta={1} x1={2} x2={3} className="w-full" />
                 </div>
               )}
             </div>

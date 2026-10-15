@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronDown, ChevronUp, Copy, HelpCircle, Sparkles } from "lucide-react";
 import { MathTex } from "@/components/math/MathTex";
+import { ParabolaDiagram } from "@/components/math/diagrams";
 import { solveEquation, type EquationResult } from "@/lib/math-engine/equations";
 
 const EXAMPLES = [
@@ -126,36 +127,51 @@ export function EquationSolver() {
             )}
 
             {result.data.type === "quadratic" && (
-              <div className="mt-2 space-y-2">
-                {result.data.delta > 0 && result.data.x1Formatted && result.data.x2Formatted && (
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-                    <MathTex
-                      tex={`x_1 = ${result.data.x1Formatted.tex}, \\quad x_2 = ${result.data.x2Formatted.tex}`}
-                    />
-                  </div>
-                )}
-                {result.data.delta === 0 && result.data.x0Formatted && (
-                  <div className="text-2xl font-bold text-zinc-900 dark:text-white">
-                    <MathTex tex={`x_0 = ${result.data.x0Formatted.tex}`} />
-                  </div>
-                )}
-                {result.data.delta < 0 && (
-                  <div className="text-lg font-bold text-rose-600 dark:text-rose-400">
-                    Brak rozwiązań w zbiorze liczb rzeczywistych (x ∈ ∅)
-                  </div>
-                )}
+              <div className="mt-4 grid gap-5 md:grid-cols-2 md:items-center">
+                <div className="space-y-3">
+                  {result.data.delta > 0 && result.data.x1Formatted && result.data.x2Formatted && (
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-white">
+                      <MathTex
+                        tex={`x_1 = ${result.data.x1Formatted.tex}, \\quad x_2 = ${result.data.x2Formatted.tex}`}
+                      />
+                    </div>
+                  )}
+                  {result.data.delta === 0 && result.data.x0Formatted && (
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-white">
+                      <MathTex tex={`x_0 = ${result.data.x0Formatted.tex}`} />
+                    </div>
+                  )}
+                  {result.data.delta < 0 && (
+                    <div className="text-lg font-bold text-rose-600 dark:text-rose-400">
+                      Brak rozwiązań w zbiorze liczb rzeczywistych (x ∈ ∅)
+                    </div>
+                  )}
 
-                {/* Kluczowe parametry CKE */}
-                <div className="mt-3 flex flex-wrap gap-4 text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  <span className="rounded bg-white/80 px-2 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
-                    Δ = <strong>{result.data.delta}</strong>
-                  </span>
-                  <span className="rounded bg-white/80 px-2 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
-                    Wierzchołek: <strong>W = ({result.data.vertex.p}, {result.data.vertex.q})</strong>
-                  </span>
-                  <span className="rounded bg-white/80 px-2 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
-                    Ramiona: <strong>{result.data.a > 0 ? "w górę (a > 0)" : "w dół (a < 0)"}</strong>
-                  </span>
+                  {/* Kluczowe parametry CKE */}
+                  <div className="flex flex-wrap gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                    <span className="rounded-lg bg-white/80 px-2.5 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
+                      Δ = <strong>{result.data.delta}</strong>
+                    </span>
+                    <span className="rounded-lg bg-white/80 px-2.5 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
+                      W = <strong>({result.data.vertex.p}, {result.data.vertex.q})</strong>
+                    </span>
+                    <span className="rounded-lg bg-white/80 px-2.5 py-1 ring-1 ring-black/5 dark:bg-zinc-900/60 dark:ring-white/10">
+                      Ramiona: <strong>{result.data.a > 0 ? "w górę (a > 0)" : "w dół (a < 0)"}</strong>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <ParabolaDiagram
+                    a={result.data.a}
+                    p={result.data.vertex.p}
+                    q={result.data.vertex.q}
+                    delta={result.data.delta}
+                    x1={result.data.x1 !== undefined ? Math.round(result.data.x1 * 100) / 100 : undefined}
+                    x2={result.data.x2 !== undefined ? Math.round(result.data.x2 * 100) / 100 : undefined}
+                    x0={result.data.x0 !== undefined ? Math.round(result.data.x0 * 100) / 100 : undefined}
+                    className="w-full"
+                  />
                 </div>
               </div>
             )}

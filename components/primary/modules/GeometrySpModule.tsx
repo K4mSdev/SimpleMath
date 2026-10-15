@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { MathTex } from "@/components/math/MathTex";
+import {
+  TriangleDiagram,
+  TrapezoidDiagram,
+  RhombusDiagram,
+  ParallelogramDiagram,
+} from "@/components/math/diagrams";
 
 export function GeometrySpModule() {
   const [shape, setShape] = useState<"triangle" | "trapezoid" | "rhombus" | "parallelogram">("triangle");
@@ -36,15 +42,17 @@ export function GeometrySpModule() {
         <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
           Kalkulator Pól Figur Płaskich (Klasy 4–8)
         </h3>
-        <p className="text-xs text-zinc-500">Wzory na pola trójkątów i czworokątów z podręcznika szkoły podstawowej.</p>
+        <p className="text-xs text-zinc-500">
+          Wizualne rysunki pomocnicze z naniesionymi wzorami i wymiarami zgodnymi z podstawą programową CKE.
+        </p>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setShape("triangle")}
-          className={`rounded-xl px-3 py-1.5 text-xs font-semibold ${
-            shape === "triangle" ? "bg-emerald-600 text-white" : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+            shape === "triangle" ? "bg-emerald-600 text-white shadow-sm" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
           Trójkąt
@@ -52,8 +60,8 @@ export function GeometrySpModule() {
         <button
           type="button"
           onClick={() => setShape("trapezoid")}
-          className={`rounded-xl px-3 py-1.5 text-xs font-semibold ${
-            shape === "trapezoid" ? "bg-emerald-600 text-white" : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+            shape === "trapezoid" ? "bg-emerald-600 text-white shadow-sm" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
           Trapez
@@ -61,8 +69,8 @@ export function GeometrySpModule() {
         <button
           type="button"
           onClick={() => setShape("rhombus")}
-          className={`rounded-xl px-3 py-1.5 text-xs font-semibold ${
-            shape === "rhombus" ? "bg-emerald-600 text-white" : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+            shape === "rhombus" ? "bg-emerald-600 text-white shadow-sm" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
           Romb (przekątne e, f)
@@ -70,68 +78,81 @@ export function GeometrySpModule() {
         <button
           type="button"
           onClick={() => setShape("parallelogram")}
-          className={`rounded-xl px-3 py-1.5 text-xs font-semibold ${
-            shape === "parallelogram" ? "bg-emerald-600 text-white" : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+            shape === "parallelogram" ? "bg-emerald-600 text-white shadow-sm" : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
           Równoległobok
         </button>
       </div>
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <div>
-          <label className="text-xs font-semibold text-zinc-500">
-            {shape === "rhombus" ? "Przekątna e:" : "Podstawa a:"}
-          </label>
-          <input
-            type="number"
-            value={a}
-            onChange={(e) => setA(e.target.value)}
-            className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white"
-          />
+      <div className="grid gap-6 md:grid-cols-2 md:items-center">
+        {/* Lewa kolumna: formularz i wynik */}
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="text-xs font-semibold text-zinc-500">
+                {shape === "rhombus" ? "Przekątna e:" : "Podstawa a:"}
+              </label>
+              <input
+                type="number"
+                value={a}
+                onChange={(e) => setA(e.target.value)}
+                className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+              />
+            </div>
+
+            {shape === "trapezoid" && (
+              <div>
+                <label className="text-xs font-semibold text-zinc-500">Druga podstawa b:</label>
+                <input
+                  type="number"
+                  value={b}
+                  onChange={(e) => setB(e.target.value)}
+                  className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+                />
+              </div>
+            )}
+
+            {shape === "rhombus" ? (
+              <div>
+                <label className="text-xs font-semibold text-zinc-500">Druga przekątna f:</label>
+                <input
+                  type="number"
+                  value={b}
+                  onChange={(e) => setB(e.target.value)}
+                  className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="text-xs font-semibold text-zinc-500">Wysokość h:</label>
+                <input
+                  type="number"
+                  value={h}
+                  onChange={(e) => setH(e.target.value)}
+                  className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white dark:ring-white/10"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+              Pole figury P:
+            </span>
+            <div className="mt-1 text-xl font-bold text-zinc-900 sm:text-2xl dark:text-white">
+              <MathTex tex={formulaTex} />
+            </div>
+          </div>
         </div>
 
-        {shape === "trapezoid" && (
-          <div>
-            <label className="text-xs font-semibold text-zinc-500">Druga podstawa b:</label>
-            <input
-              type="number"
-              value={b}
-              onChange={(e) => setB(e.target.value)}
-              className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white"
-            />
-          </div>
-        )}
-
-        {shape === "rhombus" ? (
-          <div>
-            <label className="text-xs font-semibold text-zinc-500">Druga przekątna f:</label>
-            <input
-              type="number"
-              value={b}
-              onChange={(e) => setB(e.target.value)}
-              className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white"
-            />
-          </div>
-        ) : (
-          <div>
-            <label className="text-xs font-semibold text-zinc-500">Wysokość h:</label>
-            <input
-              type="number"
-              value={h}
-              onChange={(e) => setH(e.target.value)}
-              className="mt-1 w-full rounded-xl bg-zinc-50 px-3 py-2 text-base font-bold ring-1 ring-black/5 outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-zinc-950 dark:text-white"
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 text-center dark:border-emerald-900/40 dark:bg-emerald-950/20">
-        <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-          Pole figury P:
-        </span>
-        <div className="mt-1 text-2xl font-bold text-zinc-900 dark:text-white">
-          <MathTex tex={formulaTex} />
+        {/* Prawa kolumna: interaktywny rysunek ze wzorem */}
+        <div className="flex flex-col items-center justify-center">
+          {shape === "triangle" && <TriangleDiagram a={aNum} h={hNum} className="w-full" />}
+          {shape === "trapezoid" && <TrapezoidDiagram a={aNum} b={bNum} h={hNum} className="w-full" />}
+          {shape === "rhombus" && <RhombusDiagram e={aNum} f={bNum} className="w-full" />}
+          {shape === "parallelogram" && <ParallelogramDiagram a={aNum} h={hNum} className="w-full" />}
         </div>
       </div>
     </section>
