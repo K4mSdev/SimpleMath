@@ -19,8 +19,33 @@
   }
 }
 
+html {
+  /* Safari na iPhonie nie powiększa tekstu po obrocie ekranu */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* Odstępy od notcha / Dynamic Island / paska Home w trybie aplikacji (viewport-fit=cover) */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Nagłówek przyklejony do góry nie może wchodzić pod notch */
+header.sticky {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* iOS Safari powiększa stronę po fokusie na polach <16px – wymuszamy 16px na dotykowych ekranach */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
 }

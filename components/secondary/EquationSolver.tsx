@@ -14,9 +14,10 @@ const EXAMPLES = [
   { label: "Ułamkowe / redukcja", expr: "3x - 5 = 2x + 4" },
 ];
 
-export function EquationSolver() {
-  const [input, setInput] = useState("x^2 - 5x + 6 = 0");
-  const [result, setResult] = useState<EquationResult>(() => solveEquation("x^2 - 5x + 6 = 0"));
+export function EquationSolver({ initialInput }: { initialInput?: string } = {}) {
+  const startExpr = initialInput?.trim() ? initialInput : "x^2 - 5x + 6 = 0";
+  const [input, setInput] = useState(startExpr);
+  const [result, setResult] = useState<EquationResult>(() => solveEquation(startExpr));
   const [showSteps, setShowSteps] = useState(true);
   const [copied, setCopied] = useState(false);
 

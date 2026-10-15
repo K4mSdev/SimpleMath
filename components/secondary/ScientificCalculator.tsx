@@ -30,8 +30,8 @@ const CONTINUES_ANSWER = /^[+\-·*:/^!²]/;
 /** Fragmenty usuwane w całości przez Backspace, np. "sin(" zamiast samego "(". */
 const TOKEN_BEFORE_CARET = /(?:arcsin|arccos|arcctg|arctg|sin|cos|ctg|tg|log|ln|abs|ans|√)\(?$/;
 
-export function ScientificCalculator() {
-  const [input, setInput] = useState("");
+export function ScientificCalculator({ initialInput }: { initialInput?: string } = {}) {
+  const [input, setInput] = useState(initialInput ?? "");
   const [committed, setCommitted] = useState<Committed | null>(null);
   const [showError, setShowError] = useState(false);
   const [copiedType, setCopiedType] = useState<"text" | "tex" | null>(null);

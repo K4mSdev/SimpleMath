@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, Calculator as CalcIcon, Compass, GraduationCap, Variable } from "lucide-react";
+import { ArrowLeft, BookOpen, Calculator as CalcIcon, Compass, GraduationCap, ScanLine, Variable } from "lucide-react";
 
 export type SchoolLevel = "primary" | "secondary" | null;
 export type SecondaryModule = "general" | "equations" | "geometry";
@@ -11,6 +11,7 @@ interface HeaderProps {
   secondaryModule: SecondaryModule;
   onSelectSecondaryModule: (module: SecondaryModule) => void;
   onOpenDocs: () => void;
+  onOpenScanner: () => void;
 }
 
 export function Header({
@@ -19,6 +20,7 @@ export function Header({
   secondaryModule,
   onSelectSecondaryModule,
   onOpenDocs,
+  onOpenScanner,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/80">
@@ -62,6 +64,16 @@ export function Header({
               <span className="hidden sm:inline">Zmień poziom</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={onOpenScanner}
+            aria-label="Skanuj zadanie aparatem lub ze zrzutu ekranu"
+            className="flex min-h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition active:scale-95 hover:bg-indigo-500"
+          >
+            <ScanLine className="h-4 w-4" />
+            <span>Skanuj</span>
+          </button>
 
           <button
             type="button"
