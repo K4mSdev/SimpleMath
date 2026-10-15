@@ -5,7 +5,7 @@
  * - konwertuje do skali szarości i podbija kontrast, co wyraźnie poprawia rozpoznawanie.
  */
 
-const MAX_SIDE = 1800;
+const MAX_SIDE = 1200;
 
 export interface PreparedImage {
   /** Obraz po obróbce – podawany do OCR. */
