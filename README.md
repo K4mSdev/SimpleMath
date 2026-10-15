@@ -55,6 +55,31 @@ npm test
 
 ---
 
+## 📱 Aplikacja Mobilna (Android & iPhone)
+
+SimpleMath jest dostępny jako pełna aplikacja mobilna z obsługą aparatu i wbudowanym silnikiem matematycznym:
+
+### 🤖 Android (.APK do pobrania z GitHub)
+- **Pobierz bezpośrednio:** [Pobierz SimpleMath.apk (najnowsza wersja)](https://github.com/K4mSdev/SimpleMath/releases/latest/download/SimpleMath.apk)
+- **Wydania na GitHub:** [GitHub Releases](https://github.com/K4mSdev/SimpleMath/releases)
+- **Instalacja (Sideloading):**
+  1. Pobierz plik `SimpleMath.apk` na swój telefon.
+  2. Otwórz pobrany plik. Jeśli system poprosi o zgodę, wybierz *„Zezwalaj z tego źródła”*.
+  3. Kliknij *„Zainstaluj”* – aplikacja jest w 100% bezpieczna i open source.
+- **Kompilacja automatyczna:** Każdy commit na gałąź `main` automatycznie kompiluje najnowszy plik APK przez GitHub Actions (`.github/workflows/build-apk.yml`).
+
+### 🍏 iPhone / iOS (Safari PWA & Projekt Xcode)
+1. **Błyskawiczna instalacja (PWA):**
+   - Otwórz aplikację w **Safari** na iPhonie lub iPadzie.
+   - Kliknij ikonę **Udostępnij** (kwadrat ze strzałką w górę na dolnym pasku Safari).
+   - Wybierz **„Do ekranu początkowego”** (*Add to Home Screen*) i kliknij **„Dodaj”**.
+   - Aplikacja działa na pełnym ekranie (standalone), ma dedykowaną ikonę i pełny dostęp do aparatu.
+2. **Projekt Xcode:**
+   - Katalog `ios/` zawiera kompletny projekt Capacitor dla Xcode.
+   - Uruchom `npm run cap:ios` na Macu, aby otworzyć projekt w programie Xcode i zainstalować aplikację na iPhone przez kabel USB.
+
+---
+
 ## 💻 Praca na Windowsie i MacBooku
 
 1. **Na Windowsie:** Zapisujesz zmiany, robisz commit i wysyłasz do GitHuba (`git push`).
@@ -64,4 +89,9 @@ npm test
    npm install
    npm run dev
    ```
-3. Materiały dodatkowe (arkusze CKE w PDF, notatki, grafiki) znajdują się w folderze **Google Drive**: `Mój dysk/MathPulse-materialy`.
+3. **Synchronizacja aplikacji mobilnej (Capacitor):**
+   ```bash
+   npm run cap:sync
+   ```
+4. Materiały dodatkowe (arkusze CKE w PDF, notatki, grafiki) znajdują się w folderze **Google Drive**: `Mój dysk/MathPulse-materialy`.
+

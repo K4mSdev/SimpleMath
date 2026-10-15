@@ -1,13 +1,14 @@
 "use client";
 
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Smartphone, Sparkles } from "lucide-react";
 import type { SchoolLevel } from "./Header";
 
 interface LevelSelectorProps {
   onSelectLevel: (level: SchoolLevel) => void;
+  onOpenMobileDownload?: () => void;
 }
 
-export function LevelSelector({ onSelectLevel }: LevelSelectorProps) {
+export function LevelSelector({ onSelectLevel, onOpenMobileDownload }: LevelSelectorProps) {
   return (
     <div className="space-y-8 py-4 sm:py-8">
       <div className="text-center">
@@ -132,6 +133,44 @@ export function LevelSelector({ onSelectLevel }: LevelSelectorProps) {
           </div>
         </div>
       </div>
+
+      {/* BANER APLIKACJI MOBILNEJ NA TELEFON */}
+      {onOpenMobileDownload && (
+        <div
+          onClick={onOpenMobileDownload}
+          className="cursor-pointer rounded-3xl border border-indigo-200/80 bg-gradient-to-r from-indigo-50/80 via-purple-50/60 to-emerald-50/70 p-5 shadow-sm transition hover:border-indigo-400 hover:shadow-md dark:border-indigo-900/50 dark:from-indigo-950/30 dark:via-purple-950/20 dark:to-emerald-950/20"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-500/25">
+                <Smartphone className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-white">
+                    Pobierz SimpleMath na iPhone i Android
+                  </h3>
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                    GitHub APK & PWA
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                  Skanuj zadania aparatem bezpośrednio ze smartfona, licz ułamki, deltę i geometrię offline.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
+                Pobierz na telefon
+              </span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-500">
+                <ArrowRight className="h-4 w-4" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

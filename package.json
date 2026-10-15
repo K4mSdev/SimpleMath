@@ -5,12 +5,20 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:export": "node scripts/build-export.mjs",
+    "cap:sync": "node scripts/build-export.mjs && npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "katex": "^0.19.0",
     "lucide-react": "^1.57.0",
     "mathjs": "^15.2.0",

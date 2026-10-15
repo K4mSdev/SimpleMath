@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, Calculator as CalcIcon, Compass, GraduationCap, ScanLine, Variable } from "lucide-react";
+import { ArrowLeft, BookOpen, Calculator as CalcIcon, Compass, GraduationCap, ScanLine, Smartphone, Variable } from "lucide-react";
 
 export type SchoolLevel = "primary" | "secondary" | null;
 export type SecondaryModule = "general" | "equations" | "geometry";
@@ -12,6 +12,7 @@ interface HeaderProps {
   onSelectSecondaryModule?: (module: SecondaryModule) => void;
   onOpenDocs: () => void;
   onOpenScanner: () => void;
+  onOpenMobileDownload?: () => void;
 }
 
 export function Header({
@@ -19,6 +20,7 @@ export function Header({
   onSelectLevel,
   onOpenDocs,
   onOpenScanner,
+  onOpenMobileDownload,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-900/80">
@@ -81,6 +83,19 @@ export function Header({
             <BookOpen className="h-4 w-4" />
             <span>Ściąga CKE</span>
           </button>
+
+          {onOpenMobileDownload && (
+            <button
+              type="button"
+              onClick={onOpenMobileDownload}
+              title="Pobierz aplikację na Androida lub iPhone'a"
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50/70 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+            >
+              <Smartphone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden sm:inline">Na telefon</span>
+              <span className="sm:hidden">App</span>
+            </button>
+          )}
 
           <a
             href="https://github.com/K4mSdev/SimpleMath"

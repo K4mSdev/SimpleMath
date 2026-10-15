@@ -1,0 +1,77 @@
+name: Build Android APK & Release
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repozytorium
+        uses: actions/checkout@v4
+
+      - name: Konfiguracja Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Konfiguracja Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Konfiguracja Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalacja zależności npm
+        run: npm ci
+
+      - name: Budowanie wersji statycznej i synchronizacja Capacitor
+        run: npm run cap:sync
+
+      - name: Nadanie uprawnień wykonywalności dla gradlew
+        run: chmod +x android/gradlew
+
+      - name: Kompilacja APK (Android Debug)
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Przygotowanie pliku APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk SimpleMath.apk
+          ls -lh SimpleMath.apk
+
+      - name: Zapisanie pliku APK jako GitHub Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SimpleMath-Android-APK
+          path: SimpleMath.apk
+          retention-days: 90
+
+      - name: Publikacja pliku APK w GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0-mobile"
+          echo "Publikowanie SimpleMath.apk w GitHub Releases pod tagiem $TAG..."
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" \
+            --title "SimpleMath Mobile App (Android APK)" \
+            --notes "### 📱 SimpleMath – Aplikacja Mobilna (Android & iOS)
+
+Pobierz najnowszą wersję SimpleMath dla Androida bezpośrednio z GitHub:
+- **Android APK:** Kliknij poniższy plik **SimpleMath.apk**, aby pobrać i zainstalować aplikację bezpośrednio na telefonie (sideloading bez Google Play).
+- **iPhone / iOS:** Otwórz aplikację w Safari, kliknij ikonę **Udostępnij** i wybierz **Do ekranu początkowego** (pełna aplikacja PWA) lub uruchom projekt z katalogu \`ios/\` w Xcode." \
+            --prerelease=false
+
+          gh release upload "$TAG" SimpleMath.apk --clobber

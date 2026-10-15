@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 // iOS wymaga PNG dla ikony na ekranie głównym (apple-touch-icon) – SVG nie działa.
+export const dynamic = "force-static";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 

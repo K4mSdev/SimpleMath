@@ -6,11 +6,13 @@ import { PrimarySchoolCalculator } from "@/components/primary";
 import { SecondarySchoolView } from "@/components/secondary";
 import { DocsModal } from "@/components/docs/DocsModal";
 import { ProblemScanner, type ScanTarget } from "@/components/scanner/ProblemScanner";
+import { MobileDownloadModal } from "@/components/mobile/MobileDownloadModal";
 
 export default function Home() {
   const [level, setLevel] = useState<SchoolLevel>(null);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isMobileDownloadOpen, setIsMobileDownloadOpen] = useState(false);
   // Tekst z skanera przekazywany do kalkulatora; zmiana nonce wymusza ponowne zamontowanie z nową wartością.
   const [scanInput, setScanInput] = useState<{ text: string; nonce: number }>({ text: "", nonce: 0 });
 
@@ -46,11 +48,17 @@ export default function Home() {
         onSelectLevel={selectLevel}
         onOpenDocs={() => setIsDocsOpen(true)}
         onOpenScanner={() => setIsScannerOpen(true)}
+        onOpenMobileDownload={() => setIsMobileDownloadOpen(true)}
       />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-8 sm:px-6">
         {/* EKRAN WYBORU ETAPU EDUKACJI */}
-        {level === null && <LevelSelector onSelectLevel={selectLevel} />}
+        {level === null && (
+          <LevelSelector
+            onSelectLevel={selectLevel}
+            onOpenMobileDownload={() => setIsMobileDownloadOpen(true)}
+          />
+        )}
 
         {/* POZIOM 1: SZKOŁA PODSTAWOWA (KLASY 4-8) */}
         {level === "primary" && <PrimarySchoolCalculator />}
@@ -76,6 +84,12 @@ export default function Home() {
         onClose={() => setIsScannerOpen(false)}
         onOpenInCalculator={level === "secondary" ? openScanInCalculator : undefined}
         schoolLevel={level}
+      />
+
+      {/* Modal Pobierania Aplikacji Mobilnej (Android APK & iOS) */}
+      <MobileDownloadModal
+        isOpen={isMobileDownloadOpen}
+        onClose={() => setIsMobileDownloadOpen(false)}
       />
     </div>
   );
